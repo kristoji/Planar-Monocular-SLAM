@@ -1,5 +1,5 @@
 function p = triangulate(u1, u2, X1, X2)
-    % triangulate 3D points from 2D correspondences
+    % triangulate 3D points from 2 2D correspondences
     % u1: 2D points in image 1
     % u2: 2D points in image 2
     % X1: 4x4 homogeneous  of the camera for image 1

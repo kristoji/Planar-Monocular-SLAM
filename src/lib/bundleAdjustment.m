@@ -85,6 +85,11 @@ function [state, chi_stats] = bundleAdjustment(state, observations, damping, ker
         % Add damping to the Hessian
         H += damping * eye(system_size);
 
+        % check if H is symmetric positive definite
+        if ~isequal(H, H') || any(eig(H) <= 0),
+            fprintf('Hessian is not positive definite at iteration %d\n', iter);
+        end
+
         % Solve for the update fixing the first pose to zero 
         dx = zeros(system_size, 1);
         dx(pose_dim+1:end) = -H(pose_dim+1:end, pose_dim+1:end) \ b(pose_dim+1:end);
@@ -92,7 +97,7 @@ function [state, chi_stats] = bundleAdjustment(state, observations, damping, ker
         % Update the state
         state = boxPlus(state, dx);
 
-        if chi_tot < 1e-6,
+        if norm(dx) < 1e-6,
             fprintf('Converged at iteration %d\n', iter);
             break;
         end

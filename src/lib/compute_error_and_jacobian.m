@@ -25,7 +25,7 @@ function [is_valid, err, J_pose, J_landmark] = compute_error_and_jacobian(Xr, Xl
 
     p_in_cam = iR_cam * p_in_r + it_cam; % == inv(T_cam) * p_in_r
     
-    if (p_in_r(3) < 0),
+    if (p_in_cam(3) < 0),
         return; % invalid measurement
     end
 
