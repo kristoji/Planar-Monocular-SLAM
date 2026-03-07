@@ -1,4 +1,4 @@
-function [is_valid, err, J_pose, J_landmark] = compute_error_and_jacobian(Xr, Xl, u_obs)
+function [is_valid, err, J_pose, J_landmark] = compute_proj_error_and_jacobian(Xr, Xl, u_obs)
 
     global K; global img_width; global img_height; global T_cam;
 

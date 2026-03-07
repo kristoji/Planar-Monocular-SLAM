@@ -1,4 +1,4 @@
-function [state, chi_stats] = bundleAdjustment(state, observations, damping, kernel_threashold_sq, num_iters)
+function [state, chi_stats] = bundleAdjustment(state, landmark_observations, pose_observations, damping, kernel_threashold_sq, num_iters)
 
     % pose_dim = 3; % dimension of the pose (x, y, theta)
     % landmark_dim = 3; % dimension of the landmark (x, y, z)
@@ -21,27 +21,28 @@ function [state, chi_stats] = bundleAdjustment(state, observations, damping, ker
         invalid_meas_count = 0;
         tot_meas_count = 0;
 
+        % ---------------- proj ba ----------------
 
-        % fprintf('size of observations: %d\n', size(observations, 1));
-        for meas_index = 1:size(observations, 1)
-            obs = observations(meas_index);
+        % fprintf('size of landmark_observations: %d\n', size(landmark_observations, 1));
+        for meas_index = 1:size(landmark_observations, 1)
+            obs = landmark_observations(meas_index);
             pose_index = obs.pose_index;
 
-            % fprintf('size of obs.uvs: %d\n', size(obs.uvs, 1));
-            % for each pose, there are a lot of observations
+            % for each pose, there are a lot of landmark_observations
             for obs_index = 1:size(obs.uvs, 1)
                 tot_meas_count = tot_meas_count + 1;
                 landmark_index = obs.landmark_indexes(obs_index);
+                
+                if state.guessed(landmark_index) == 0,
+                    continue; % skip unguessed landmarks
+                end
+                
                 u_obs = obs.uvs(obs_index, :)';
 
                 Xr = state.Xr(:, :, pose_index);
-                % if meas_index == 8
-                %     disp(landmark_index);
-                %     disp(size(state.Xl));
-                % end
                 Xl = state.Xl(:, landmark_index);
 
-                [is_valid, err, J_pose, J_landmark] = compute_error_and_jacobian(Xr, Xl, u_obs);
+                [is_valid, err, J_pose, J_landmark] = compute_proj_error_and_jacobian(Xr, Xl, u_obs);
 
                 if ~is_valid,
                     invalid_meas_count += 1;
@@ -77,6 +78,54 @@ function [state, chi_stats] = bundleAdjustment(state, observations, damping, ker
             end
         end
 
+        % ----------------- pose ba -----------------
+
+        for meas_index = 1:size(pose_observations, 1)
+            obs = pose_observations(meas_index);
+            pose_i_index = obs.pose_i_index;
+            pose_j_index = obs.pose_j_index;
+            Z = obs.Z;
+
+            Xi = state.Xr(:, :, pose_i_index);
+            Xj = state.Xr(:, :, pose_j_index);
+
+            [err, Ji, Jj] = compute_pose_error_and_jacobian(Xi, Xj, Z);
+
+            if ~is_valid,
+                invalid_meas_count += 1;
+                continue; % skip invalid measurements
+            end
+
+            Omega = eye(12);
+            Omega(1:9, 1:9) *= 1e3; % grisetti said we need to pimp the rotation part a little
+            
+            chi = err' * Omega * err;
+            if chi < kernel_threashold_sq,
+                num_inliers = num_inliers + 1;
+            else 
+                weight = sqrt(kernel_threashold_sq / chi); % apply robust kernel
+                Ji *= weight;
+                Jj *= weight;
+                err *= weight;
+                chi = kernel_threashold_sq;
+            end
+            chi_tot += chi;
+
+            pose_i_matrix_index = (pose_i_index - 1) * pose_dim + 1;
+            pose_j_matrix_index = (pose_j_index - 1) * pose_dim + 1;
+
+            H(pose_i_matrix_index:pose_i_matrix_index+pose_dim-1, pose_i_matrix_index:pose_i_matrix_index+pose_dim-1) += Ji' * Omega * Ji;
+
+            H(pose_i_matrix_index:pose_i_matrix_index+pose_dim-1, pose_j_matrix_index:pose_j_matrix_index+pose_dim-1) += Ji' * Omega * Jj;
+
+            H(pose_j_matrix_index:pose_j_matrix_index+pose_dim-1, pose_i_matrix_index:pose_i_matrix_index+pose_dim-1) += Jj' * Omega * Ji;
+
+            H(pose_j_matrix_index:pose_j_matrix_index+pose_dim-1, pose_j_matrix_index:pose_j_matrix_index+pose_dim-1) += Jj' * Omega * Jj;
+
+            b(pose_i_matrix_index:pose_i_matrix_index+pose_dim-1) += Ji' * Omega * err;
+            b(pose_j_matrix_index:pose_j_matrix_index+pose_dim-1) += Jj' * Omega * err;
+        end
+
         fprintf('Iteration %d: Total Chi = %.2f | Inliers = %d, Invalid Measurements = %d / Total Measurements = %d\n', iter, chi_tot, num_inliers, invalid_meas_count, tot_meas_count);
 
         chi_stats.chi_tot = [chi_stats.chi_tot, chi_tot];
@@ -102,5 +151,20 @@ function [state, chi_stats] = bundleAdjustment(state, observations, damping, ker
             break;
         end
     end
+
+    h = figure();
+    subplot(1,2,1);
+    hold on;
+    title('Sparsity Pattern of Hessian');
+    spy(H);
+    xlabel('Column Index');
+    ylabel('Row Index');
+    subplot(1,2,2);
+    hold on;
+    title('Sparsity Pattern of Hessian (Zoomed)');
+    spy(H(1:100, 1:100));
+    xlabel('Column Index');
+    ylabel('Row Index');
+    saveas(h, '../imgs/hessian_sparsity.png');
 
 end
