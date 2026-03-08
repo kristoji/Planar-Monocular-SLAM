@@ -170,29 +170,31 @@ And the intermediate derivatives are (written to emphasize blocks and vector ori
 The Bundle Adjustment was performed using a damping factor of 1e-6 and a Huber/Cauchy kernel with a kernel_threshold of 1. The optimization yielded excellent metric results, successfully mapping the planar environment and correcting the odometry drift.
 
 ### Performance Metrics
-<div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
-<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid #9C27B0; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px; text-align: center;"><h3 style="margin-top: 0; color: #333;">Bundle Adjustment</h3>
-<p style="font-size: 1.8em; font-weight: bold; color: #9C27B0; margin: 0;">7 Iterations</p><p style="font-size: 0.9em; color: #666; margin: 5px 0 0 0;">Number of Iterations to Converge</p></div>
-<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid #4CAF50; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px; text-align: center;">
-<h3 style="margin-top: 0; color: #333;">Landmarks Estimated</h3>
-<p style="font-size: 1.8em; font-weight: bold; color: #4CAF50; margin: 0;">79.40%</p>
-<p style="font-size: 0.9em; color: #666; margin: 5px 0 0 0;">RMSE: <b>0.01m</b></p></div>
-<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid #2196F3; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px; text-align: center;"><h3 style="margin-top: 0; color: #333;">Trajectory Error</h3>
-<p style="font-size: 1.8em; font-weight: bold; color: #2196F3; margin: 0;">0.002m</p><p style="font-size: 0.9em; color: #666; margin: 5px 0 0 0;">Mean Translational Error</p></div>
-<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid #FF9800; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px; text-align: center;"><h3 style="margin-top: 0; color: #333;">Rotational Error</h3>
-<p style="font-size: 1.8em; font-weight: bold; color: #FF9800; margin: 0;">~1e-5 rad</p><p style="font-size: 0.9em; color: #666; margin: 5px 0 0 0;">Mean Rotational Error</p></div></div>
+| Metric | Value | Notes |
+|---|---:|---|
+| Bundle Adjustment Iterations | **7** | Number of optimization iterations |
+| Landmarks Estimated | **79.40%** <br> `█████████░░` | Fraction of landmarks successfully initialized |
+| Landmark RMSE | **0.01 m** | Root-mean-square error on landmarks |
+| Mean Translational Error | **0.002 m** | Mean absolute translational error |
+| Mean Rotational Error | **~1e-5 rad** | Mean absolute rotational error |
+
 
 ### Graphical Analysis
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); gap: 20px;"><div style="text-align: center;"><img src="imgs/ba_results.png" alt="Bundle Adjustment Results" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-<p style="font-size: 0.9em; color: #555; margin-top: 8px;">
-<b>Final Map & Trajectory:</b> Overlay of the optimized graph vs Ground Truth.</p></div>
-<div style="text-align: center;"><img src="imgs/chi_stats.png" alt="Chi-Square Evolution" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><p style="font-size: 0.9em; color: #555; margin-top: 8px;">
-<b>Convergence:</b> Evolution of the chi² error over optimization iterations.</p></div>
-<div style="text-align: center;"><img src="imgs/pose_errors.png" alt="Pose Errors" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><p style="font-size: 0.9em; color: #555; margin-top: 8px;">
-<b>Pose Errors:</b> Distribution of translational and rotational absolute errors.</p></div>
-<div style="text-align: center;"><img src="imgs/hessian_sparsity.png" alt="Hessian Matrix Sparsity" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><p style="font-size: 0.9em; color: #555; margin-top: 8px;">
-<b>Hessian Sparsity:</b> Visualizing the sparse block structure of the system HΔx = −b.</p></div></div>
+<div align="center">
+
+<table>
+    <tr>
+        <td align="center" width="50%"><img src="imgs/ba_results.png" width="100%"><p><b>Final Map & Trajectory: </b> Overlay of the optimized graph vs Ground Truth.</p></td>
+        <td align="center" width="50%"><img src="imgs/chi_stats.png" width="100%"><p><b>Convergence: </b> Evolution of the chi² error over optimization iterations.</p></td>
+    </tr>
+    <tr>
+        <td align="center" width="50%"><img src="imgs/pose_errors.png" width="100%"><p><b>Pose Errors: </b> Distribution of translational and rotational absolute errors.</p></td>
+        <td align="center" width="50%"><img src="imgs/hessian_sparsity.png" width="100%"><p><b>Hessian Sparsity: </b> Visualizing the sparse block structure of the system HΔx = −b.</p></td>
+    </tr>
+</table>
+
+</div>
 
 
 
