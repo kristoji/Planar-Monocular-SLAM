@@ -90,6 +90,10 @@ The pose-to-pose error computes the difference between the expected relative tra
 \mathbf{e}_{pose} = \begin{bmatrix} \text{vec}(\hat{\mathbf{R}}_{ij} - \mathbf{R}_z) \\ \hat{\mathbf{t}}_{ij} - \mathbf{t}_z \end{bmatrix}
 ```
 
+
+Using chordal distance for the rotation error avoids the need for the $`\boxminus`$ (box-minus) operator. By embedding rotations in a flattened vector, the Jacobians become simpler to derive and implement. This trades a small modeling approximation for clearer, more stable Jacobians and reduced implementation complexity.
+
+
 <b>Odometry Jacobians.</b>
 The perturbation is $`\Delta \mathbf{x} = [\Delta x, \Delta y, \Delta \theta]^T`$. The Jacobian $`\mathbf{J}_j`$ with respect to pose $`\mathbf{X}_j`$ is a $`12 \times 3`$ matrix. Since $`\mathbf{X}_i`$ and $`\mathbf{X}_j`$ are strongly coupled, the Jacobian with respect to $`\mathbf{X}_i`$ simplifies to $`\mathbf{J}_i = -\mathbf{J}_j`$.
 
